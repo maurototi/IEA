@@ -1,0 +1,72 @@
+{
+    "_": {
+        "editor": {
+            "view": {
+                "view-show-grid": true,
+                "view-snap-grid": true,
+                "view-grid-size": "20",
+                "view-node-status": true,
+                "view-node-show-label": true,
+                "view-show-tips": true,
+                "view-show-welcome-tours": true
+            },
+            "tours": {
+                "welcome": "2.1.6"
+            },
+            "context": {
+                "flowRefresh": false
+            }
+        },
+        "menu-menu-item-palette": true
+    },
+    "admin": {
+        "editor": {
+            "view": {
+                "view-show-grid": true,
+                "view-snap-grid": true,
+                "view-grid-size": "20",
+                "view-node-status": true,
+                "view-node-show-label": true,
+                "view-show-tips": false,
+                "view-show-welcome-tours": true,
+                "view-store-position": false,
+                "view-store-zoom": false
+            },
+            "tours": {
+                "welcome": "3.0.2"
+            }
+        },
+        "debug": {
+            "filter": "filterAll",
+            "filteredNodes": [
+                "c1d6406fb2d545e6",
+                "41a227ce2c3b87e7",
+                "f9caf9a3af82752f",
+                "4254df5ace89f7eb",
+                "73baef7468cbb70e",
+                "704c47c4246fa2ee",
+                "3a5e09fe5aac976e",
+                "98b45e83d26fe027",
+                "f8756e2ed98e306e",
+                "f8e6b7d8abbb58c5",
+                "79da6095c333b185",
+                "43e83e57c0abf541",
+                "e871148cfccd628d",
+                "e807bc7a67c0d87c",
+                "a73ae4d321db8b83",
+                "148ac9b80b98148a",
+                "2a20694ad7718a4e",
+                "37bfef635ee66b3c",
+                "56dec44721a7e456",
+                "7f2351aeae608688",
+                "4fda35c1a8e8d897"
+            ],
+            "clearType": "filtered"
+        },
+        "menu-menu-item-sidebar": false,
+        "menu-menu-item-palette": false,
+        "menu-deploymenu-item-flow": true,
+        "menu-deploymenu-item-full": false,
+        "menu-deploymenu-item-node": false
+    }
+}

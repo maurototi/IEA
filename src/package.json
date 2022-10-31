@@ -1,0 +1,21 @@
+{
+  "name": "red-project",
+  "description": "A Node-RED Project",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "node-red-contrib-credentials": "~0.2.1",
+    "node-red-contrib-fs-ops": "^1.6.0",
+    "node-red-node-sqlite": "~1.0.3",
+    "sqlite-plugin-red": "~0.0.3"
+  },
+  "main": "settings.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

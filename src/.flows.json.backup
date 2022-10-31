@@ -1,0 +1,1881 @@
+[
+    {
+        "id": "cd6bb34d47105671",
+        "type": "tab",
+        "label": "File Finder",
+        "disabled": false,
+        "info": "In this flow, the folders that contain the files are read, formatted and sent as messages to the database.",
+        "env": []
+    },
+    {
+        "id": "f23d7f3f66398d2f",
+        "type": "tab",
+        "label": "Get Token",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "2e64d4c92af0fc32",
+        "type": "tab",
+        "label": "File Finder Data Archive",
+        "disabled": false,
+        "info": "Búsqueda, lectura, formateo y envío hacia la base de datos SQLite",
+        "env": []
+    },
+    {
+        "id": "733e125ae5c9b0c4",
+        "type": "mqtt-broker",
+        "name": "Grainision MQTT",
+        "broker": "mqtt.grainvision.com.ar",
+        "port": "4468",
+        "tls": "",
+        "clientid": "1234Santino",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    },
+    {
+        "id": "6897001f7f957f27",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "localhost:1883",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    },
+    {
+        "id": "7824e1ae975015e8",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "broker.hivemq.com",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "3",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    },
+    {
+        "id": "38afadbe01b6ed81",
+        "type": "sqlitedb",
+        "db": "C:\\GRAINVSN\\GVCLOUD\\data.sqlite.db",
+        "mode": "RWC"
+    },
+    {
+        "id": "93b76133ddb25761",
+        "type": "inject",
+        "z": "cd6bb34d47105671",
+        "name": "Start",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 390,
+        "y": 580,
+        "wires": [
+            [
+                "dfc56a1039221188"
+            ]
+        ]
+    },
+    {
+        "id": "90527a3f9fff2150",
+        "type": "function",
+        "z": "cd6bb34d47105671",
+        "name": "Find Files",
+        "func": "var pathToDirectory = msg.payload\nvar AllowedFileExtensions = flow.get(\"allowedExtensions\")\n\nfunction filterOnExtension(file) {\n    return (new RegExp('(' + AllowedFileExtensions.join('|').replace(/\\./g, '\\\\.') + ')$')).test(file.name.toUpperCase());\n}\n\ntry {\n    fs.readdir(pathToDirectory, { withFileTypes: true }, (error, files) => {\n        if(error){\n            throw error\n            return\n        }\n        const filesInDIrectory = files\n            .splice(0,5)\n            // .filter((item) => item.isFile)\n            .filter( filterOnExtension )\n            .map((item) => path.join(pathToDirectory, item.name));\n        msg.payload = filesInDIrectory.length ? filesInDIrectory : []\n        //borrar los archivos que esten vacios aca.\n        //remove....\n        node.send( msg )\n    });\n} catch(error) {\n    node.error('Ouch! Something went badly wrong processing the folder list', error)\n    return\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "fs",
+                "module": "fs"
+            },
+            {
+                "var": "path",
+                "module": "path"
+            }
+        ],
+        "x": 600,
+        "y": 520,
+        "wires": [
+            [
+                "598709619046bdca"
+            ]
+        ],
+        "info": "Returns an array with the name and location of each file."
+    },
+    {
+        "id": "dfc56a1039221188",
+        "type": "change",
+        "z": "cd6bb34d47105671",
+        "name": "Set Variables",
+        "rules": [
+            {
+                "t": "set",
+                "p": "filesPath",
+                "pt": "flow",
+                "to": "C:\\GRAINVSN\\GVCLOUD\\10122020",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "allowedExtensions",
+                "pt": "flow",
+                "to": "[\".ALM2\",\".TXT\",\".OHM\"]",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 150,
+        "y": 520,
+        "wires": [
+            [
+                "61889a617cb47385"
+            ]
+        ]
+    },
+    {
+        "id": "61889a617cb47385",
+        "type": "function",
+        "z": "cd6bb34d47105671",
+        "name": "Find First Sub Folder",
+        "func": "var pathToDirectory = flow.get(\"filesPath\")\ntry {\n    fs.readdir(pathToDirectory, { withFileTypes: true }, (error, files) => {\n        if(error){\n           throw error\n        }\n        \n        const directoriesInDIrectory = files\n            .filter((item) => item.isDirectory())\n            .map((item) => path.join(pathToDirectory, item.name) );\n        \n        msg.payload = directoriesInDIrectory.length ? directoriesInDIrectory[0] : null\n        node.send( msg )\n    });\n} catch(error) {\n    node.error('Ouch! Something went badly wrong processing the folder list', error)\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "fs",
+                "module": "fs"
+            },
+            {
+                "var": "path",
+                "module": "path"
+            }
+        ],
+        "x": 380,
+        "y": 520,
+        "wires": [
+            [
+                "90527a3f9fff2150"
+            ]
+        ],
+        "info": "Returns the path of the folder where the files are located."
+    },
+    {
+        "id": "598709619046bdca",
+        "type": "split",
+        "z": "cd6bb34d47105671",
+        "name": "",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 770,
+        "y": 520,
+        "wires": [
+            [
+                "b791f8b3b9cbc3fe"
+            ]
+        ],
+        "info": "Returns the paths and names of the files as individual strings."
+    },
+    {
+        "id": "3f47a60730d40ecf",
+        "type": "function",
+        "z": "cd6bb34d47105671",
+        "name": "Read File",
+        "func": "var fileName = msg.payload;\nvar canDelete = [];\n// Compara el nombre del archivo que se lee en el momento con el anterior\nif(global.get(\"readingFileName\") === undefined){\n    global.set(\"readingFileName\", msg.fileName);\n    msg.a = \"si\"; // Funny debugging 1\n}\nif(global.get(\"readingFileName\") !== msg.fileName){\n    canDelete.push(global.get(\"readingFileName\"),); //esta funcion push no funciona\n    global.set(\"readingFileName\", canDelete);\n    msg.a = \"no\"; // Funny debugging 2\n}\nmsg.canDelete = canDelete;\nmsg.readingFileName = global.get(\"readingFileName\");\n\n\nclass CableHistoric {\n    constructor (Proyecto , CodigoVuelta, FechaHora, Data, Type,Path ){\n    this.Project = Proyecto\n    this.CodigoVuelta = CodigoVuelta\n    this.FechaHora = FechaHora\n    this.Data = Data,\n    this.Type = Type\n    var _Path = Path\n    }\n    getPath() { return _Path }\n}\n\ntry {\n    fs.readFile(fileName, 'utf8' , (err, fileContent) => {\n      if (err) {\n        throw error\n            return\n      }\n      if(fileContent == \"\") {\n          try {\n              // fs.unlinkSync(fileName)\n              //file removed\n              console.log(\"File removed\", fileName)\n            } catch(err) {\n              node.error('Ouch! Can\\'t remove file', error)\n            }\n          // node.send( msg )\n          return\n      }\n      // Quito las comillas\n      fileContent = fileContent.replace(/['\"]+/g, '');\n      const content = fileContent.split(\",\")\n      var fileExt = fileName.split('.').pop();\n      \n      // Instancio la clase\n      let historico = new CableHistoric(content[0],content[1],content[2], content.slice(3, content.length), fileExt, fileName);\n\n      msg.payload = historico\n      node.send( msg )\n\n    })\n} catch(error) {\n    node.error('Ouch! Something went badly wrong processing the reading file', error)\n    return\n}",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "fs",
+                "module": "fs"
+            }
+        ],
+        "x": 1180,
+        "y": 420,
+        "wires": [
+            [
+                "569d12ddc1b736f0",
+                "96d20aef730bee4d"
+            ]
+        ],
+        "info": "Returns all data and information obtained from the file."
+    },
+    {
+        "id": "f9caf9a3af82752f",
+        "type": "debug",
+        "z": "cd6bb34d47105671",
+        "name": "Payload to Other",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1590,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "729f072ceaa970f9",
+        "type": "mqtt out",
+        "z": "cd6bb34d47105671",
+        "name": "Envío",
+        "topic": "PSistemas/GVW_DB",
+        "qos": "0",
+        "retain": "false",
+        "respTopic": "tuki",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "7824e1ae975015e8",
+        "x": 1990,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "81e0e0540f99f271",
+        "type": "split",
+        "z": "cd6bb34d47105671",
+        "name": "Split arrays",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": "1",
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 1570,
+        "y": 520,
+        "wires": [
+            [
+                "4254df5ace89f7eb",
+                "298b356aa5b07c62"
+            ]
+        ],
+        "info": "The contents of the arrays of data now are individual messages."
+    },
+    {
+        "id": "4254df5ace89f7eb",
+        "type": "debug",
+        "z": "cd6bb34d47105671",
+        "name": "Individual Data",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1780,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "9fbf689b663bd4cc",
+        "type": "debug",
+        "z": "cd6bb34d47105671",
+        "name": "Historico",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 2020,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "569d12ddc1b736f0",
+        "type": "change",
+        "z": "cd6bb34d47105671",
+        "d": true,
+        "name": "Change data",
+        "rules": [
+            {
+                "t": "set",
+                "p": "other",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "msg",
+                "dc": true
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.Data",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "attempts",
+                "pt": "global",
+                "to": "1",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1370,
+        "y": 520,
+        "wires": [
+            [
+                "f9caf9a3af82752f",
+                "81e0e0540f99f271"
+            ]
+        ],
+        "info": "All content of Data goes to payload, and the content of payload to 'other'\n\nThis is done because the split node only works with the payload."
+    },
+    {
+        "id": "298b356aa5b07c62",
+        "type": "function",
+        "z": "cd6bb34d47105671",
+        "name": "Initialise historico",
+        "func": "let historico = {\n    $CodigoVuelta : msg.other.CodigoVuelta,\n    $Proyecto : msg.other.Project,\n    $Fecha : msg.other.FechaHora,\n    $Type : msg.other.Type,\n    $Dato : msg.payload,\n    $Intentos : global.get('attempts')\n}\n\nmsg.payload = historico;\n\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1790,
+        "y": 520,
+        "wires": [
+            [
+                "9fbf689b663bd4cc",
+                "729f072ceaa970f9"
+            ]
+        ],
+        "info": "'Historico' is used later in the 'SQL control' flow, in the SQLite node.\n\nThe attempts variable changes when the message didn't arrive."
+    },
+    {
+        "id": "a077182eda820fa1",
+        "type": "comment",
+        "z": "cd6bb34d47105671",
+        "name": "The register is modified to have one data for message",
+        "info": "",
+        "x": 1520,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "76f6d73112662b36",
+        "type": "link in",
+        "z": "cd6bb34d47105671",
+        "name": "Add try2",
+        "links": [
+            "99fe16cc55da70c1"
+        ],
+        "x": 1375,
+        "y": 340,
+        "wires": [
+            [
+                "b6caf3ed5e746da4",
+                "2c5b2f464cbfd1b0"
+            ]
+        ]
+    },
+    {
+        "id": "96d20aef730bee4d",
+        "type": "debug",
+        "z": "cd6bb34d47105671",
+        "name": "File Read",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1360,
+        "y": 640,
+        "wires": []
+    },
+    {
+        "id": "b791f8b3b9cbc3fe",
+        "type": "change",
+        "z": "cd6bb34d47105671",
+        "name": "Declare fileName",
+        "rules": [
+            {
+                "t": "set",
+                "p": "fileName",
+                "pt": "global",
+                "to": "payload",
+                "tot": "msg"
+            },
+            {
+                "t": "change",
+                "p": "fileName",
+                "pt": "global",
+                "from": "C:\\Users\\psistemas\\AppData\\Local\\Temp\\PROG.NODE RED\\10122020",
+                "fromt": "str",
+                "to": "",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "fileName",
+                "pt": "msg",
+                "to": "fileName",
+                "tot": "global"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 970,
+        "y": 520,
+        "wires": [
+            [
+                "2ab4c0cf6d21fc95"
+            ]
+        ]
+    },
+    {
+        "id": "b6caf3ed5e746da4",
+        "type": "debug",
+        "z": "cd6bb34d47105671",
+        "name": "PUEDE FALLAR dijo Tusam",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1580,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "5235c60a6d2a82fd",
+        "type": "comment",
+        "z": "cd6bb34d47105671",
+        "name": "canDelete needs to save the names",
+        "info": "The error is that .push overwrites the content of canDelete\n\n.push is used to save the names of the files that are ready to delete.\n\nThe onde used to delete them can get an array of names and delete them.",
+        "x": 1440,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "2c5b2f464cbfd1b0",
+        "type": "change",
+        "z": "cd6bb34d47105671",
+        "name": "Add 1 to attempts",
+        "rules": [
+            {
+                "t": "set",
+                "p": "attempts",
+                "pt": "global",
+                "to": "$globalContext(\"attempts\") + 1",
+                "tot": "jsonata"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1550,
+        "y": 400,
+        "wires": [
+            [
+                "298b356aa5b07c62"
+            ]
+        ]
+    },
+    {
+        "id": "457f51ef80540129",
+        "type": "http in",
+        "z": "cd6bb34d47105671",
+        "name": "envio por http",
+        "url": "broker.hivemq.com:1883",
+        "method": "post",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 2090,
+        "y": 440,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2ab4c0cf6d21fc95",
+        "type": "debug",
+        "z": "cd6bb34d47105671",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1170,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "e88240faefad695c",
+        "type": "inject",
+        "z": "f23d7f3f66398d2f",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 80,
+        "y": 120,
+        "wires": [
+            [
+                "ed59dc7dfc9bdc5e"
+            ]
+        ]
+    },
+    {
+        "id": "9fadbb033b03fbc7",
+        "type": "http request",
+        "z": "f23d7f3f66398d2f",
+        "name": "",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://grainvision.local/api/user",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "senderr": false,
+        "x": 1790,
+        "y": 320,
+        "wires": [
+            [
+                "148ac9b80b98148a"
+            ]
+        ]
+    },
+    {
+        "id": "148ac9b80b98148a",
+        "type": "debug",
+        "z": "f23d7f3f66398d2f",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1990,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "ed59dc7dfc9bdc5e",
+        "type": "credentials",
+        "z": "f23d7f3f66398d2f",
+        "name": "Credentials",
+        "props": [
+            {
+                "value": "email",
+                "type": "msg"
+            },
+            {
+                "value": "password",
+                "type": "msg"
+            }
+        ],
+        "x": 350,
+        "y": 220,
+        "wires": [
+            [
+                "17e43a3c58ed371f"
+            ]
+        ]
+    },
+    {
+        "id": "ce88116305f16e82",
+        "type": "http request",
+        "z": "f23d7f3f66398d2f",
+        "name": "Login",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://app.grainvision.com.ar/api/login",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "basic",
+        "senderr": false,
+        "x": 810,
+        "y": 220,
+        "wires": [
+            [
+                "b0f3a7a01dcfc4be"
+            ]
+        ]
+    },
+    {
+        "id": "aa0c745fc70fb31d",
+        "type": "function",
+        "z": "f23d7f3f66398d2f",
+        "name": "Set Headers and Token",
+        "func": "const token = msg.payload.token\nmsg = {}\nmsg.payload = {}\nmsg.headers = {}\nmsg.headers['accept'] = 'application/json'\nmsg.headers['authorization'] = 'Bearer ' + token\nmsg.headers['content-type'] = 'application/json'\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1530,
+        "y": 260,
+        "wires": [
+            [
+                "2a20694ad7718a4e",
+                "9fadbb033b03fbc7"
+            ]
+        ]
+    },
+    {
+        "id": "17e43a3c58ed371f",
+        "type": "function",
+        "z": "f23d7f3f66398d2f",
+        "name": "Set Credentials and Headers",
+        "func": "const email = msg.email\nconst password = msg.password\nmsg = {}\nmsg.headers = {}\nmsg.headers['accept'] = 'application/json'\nmsg.headers['content-type'] = 'application/json'\nmsg.payload = {}\nmsg.payload.email = email\nmsg.payload.password = password\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 580,
+        "y": 220,
+        "wires": [
+            [
+                "ce88116305f16e82",
+                "37bfef635ee66b3c"
+            ]
+        ]
+    },
+    {
+        "id": "2a20694ad7718a4e",
+        "type": "debug",
+        "z": "f23d7f3f66398d2f",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1770,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "37bfef635ee66b3c",
+        "type": "debug",
+        "z": "f23d7f3f66398d2f",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 730,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "30cf3d28e7bc30a7",
+        "type": "change",
+        "z": "f23d7f3f66398d2f",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "token",
+                "pt": "global",
+                "to": "payload.token",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1160,
+        "y": 80,
+        "wires": [
+            [
+                "232181cd4686249d"
+            ]
+        ]
+    },
+    {
+        "id": "b0f3a7a01dcfc4be",
+        "type": "switch",
+        "z": "f23d7f3f66398d2f",
+        "name": "",
+        "property": "statusCode",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "200",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "401",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "422",
+                "vt": "str"
+            }
+        ],
+        "checkall": "false",
+        "repair": false,
+        "outputs": 3,
+        "x": 930,
+        "y": 140,
+        "wires": [
+            [
+                "30cf3d28e7bc30a7"
+            ],
+            [
+                "7f2351aeae608688"
+            ],
+            [
+                "7f2351aeae608688"
+            ]
+        ]
+    },
+    {
+        "id": "7f2351aeae608688",
+        "type": "debug",
+        "z": "f23d7f3f66398d2f",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1110,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "2254c3a2f48558a7",
+        "type": "link in",
+        "z": "f23d7f3f66398d2f",
+        "name": "Get Token Link",
+        "links": [
+            "2afaa3404216b15e"
+        ],
+        "x": 95,
+        "y": 460,
+        "wires": [
+            [
+                "c7dfc0e6c0a2e39d"
+            ]
+        ]
+    },
+    {
+        "id": "abc610a19c07c517",
+        "type": "change",
+        "z": "f23d7f3f66398d2f",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "flow"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 120,
+        "y": 240,
+        "wires": [
+            [
+                "ed59dc7dfc9bdc5e"
+            ]
+        ]
+    },
+    {
+        "id": "c7dfc0e6c0a2e39d",
+        "type": "switch",
+        "z": "f23d7f3f66398d2f",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "nnull"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 110,
+        "y": 360,
+        "wires": [
+            [
+                "abc610a19c07c517"
+            ],
+            [
+                "ed59dc7dfc9bdc5e"
+            ]
+        ]
+    },
+    {
+        "id": "232181cd4686249d",
+        "type": "switch",
+        "z": "f23d7f3f66398d2f",
+        "name": "Check Flow Payload",
+        "property": "payload",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "nnull"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 1410,
+        "y": 140,
+        "wires": [
+            [
+                "af1e8b6429cdf2e0"
+            ]
+        ]
+    },
+    {
+        "id": "af1e8b6429cdf2e0",
+        "type": "link out",
+        "z": "f23d7f3f66398d2f",
+        "name": "Go To Send Data",
+        "mode": "return",
+        "links": [],
+        "x": 1645,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "0a0e96df2ded61a2",
+        "type": "switch",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "property": "condicion",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "true"
+            },
+            {
+                "t": "false"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 520,
+        "y": 1260,
+        "wires": [
+            [],
+            []
+        ]
+    },
+    {
+        "id": "4d2725463a2c5eae",
+        "type": "inject",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 190,
+        "y": 1120,
+        "wires": [
+            [
+                "a5abede05775c037"
+            ]
+        ]
+    },
+    {
+        "id": "90c1f7257074f5ee",
+        "type": "inject",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "false",
+        "payloadType": "bool",
+        "x": 190,
+        "y": 1180,
+        "wires": [
+            [
+                "a5abede05775c037"
+            ]
+        ]
+    },
+    {
+        "id": "a5abede05775c037",
+        "type": "change",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "condicion",
+                "pt": "flow",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 540,
+        "y": 1140,
+        "wires": [
+            [
+                "c631538f525c63ee"
+            ]
+        ]
+    },
+    {
+        "id": "c386ae61bb5fcac7",
+        "type": "debug",
+        "z": "2e64d4c92af0fc32",
+        "name": "salida 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 840,
+        "y": 1220,
+        "wires": []
+    },
+    {
+        "id": "cdd7c30b7a47190f",
+        "type": "debug",
+        "z": "2e64d4c92af0fc32",
+        "name": "salida 2",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 840,
+        "y": 1340,
+        "wires": []
+    },
+    {
+        "id": "c631538f525c63ee",
+        "type": "function",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "func": "let condicion = flow.get(\"condicion\"); //obtengo la variable de flow.get \"condicion\"\n\nif (condicion === true ){\n\n    return [msg,null]; //return [salida 1, salida 2, salida 3 ....];\n}\n\nif (condicion === false){\n \n    return [null,msg]; //msg es la propiedad que contiene eñ valor de la variable anterior   \n}\n\nreturn msg;",
+        "outputs": 2,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 550,
+        "y": 1480,
+        "wires": [
+            [
+                "c386ae61bb5fcac7"
+            ],
+            [
+                "cdd7c30b7a47190f"
+            ]
+        ]
+    },
+    {
+        "id": "a58121470ec12055",
+        "type": "inject",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "props": [
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 800,
+        "y": 940,
+        "wires": [
+            [
+                "5421beefb9b49a6e"
+            ]
+        ]
+    },
+    {
+        "id": "5421beefb9b49a6e",
+        "type": "trigger",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "op1": "",
+        "op2": "no se recibio nada en los ultimos 2 seg",
+        "op1type": "nul",
+        "op2type": "str",
+        "duration": "2000",
+        "extend": true,
+        "overrideDelay": false,
+        "units": "ms",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 1010,
+        "y": 940,
+        "wires": [
+            [
+                "bc256614a020e695"
+            ]
+        ]
+    },
+    {
+        "id": "bc256614a020e695",
+        "type": "debug",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1230,
+        "y": 940,
+        "wires": []
+    },
+    {
+        "id": "9d2336c8dca46a9e",
+        "type": "delay",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "pauseType": "delayv",
+        "timeout": "5",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "allowrate": false,
+        "outputs": 1,
+        "x": 1040,
+        "y": 1020,
+        "wires": [
+            [
+                "d4027ef2227624af"
+            ]
+        ]
+    },
+    {
+        "id": "08eff7a18c75ab39",
+        "type": "inject",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "props": [
+            {
+                "p": "delay",
+                "v": "1000",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": " mensaje 1 (1000ms)",
+        "payloadType": "str",
+        "x": 830,
+        "y": 1020,
+        "wires": [
+            [
+                "9d2336c8dca46a9e"
+            ]
+        ]
+    },
+    {
+        "id": "d4027ef2227624af",
+        "type": "debug",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1230,
+        "y": 1020,
+        "wires": []
+    },
+    {
+        "id": "1323a096667f9bb4",
+        "type": "inject",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "props": [
+            {
+                "p": "delay",
+                "v": "5000",
+                "vt": "str"
+            },
+            {
+                "p": "payload"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "mensaje 2 (5000 ms)",
+        "payloadType": "str",
+        "x": 840,
+        "y": 1100,
+        "wires": [
+            [
+                "9d2336c8dca46a9e"
+            ]
+        ]
+    },
+    {
+        "id": "2db1ae55c7f9523e",
+        "type": "function",
+        "z": "2e64d4c92af0fc32",
+        "name": "devuelve la ubicacion de cada archivo",
+        "func": "var pathToDirectory = msg.payload\nvar AllowedFileExtensions = flow.get(\"allowedExtensions\")\n\nfunction filterOnExtension(file) {\n    return (new RegExp('(' + AllowedFileExtensions.join('|').replace(/\\./g, '\\\\.') + ')$')).test(file.name.toUpperCase());\n}\n\ntry {\n    fs.readdir(pathToDirectory, { withFileTypes: true }, (error, files) => {\n        if(error){\n            throw error\n            return\n        }\n        const filesInDIrectory = files\n            .splice(0,5)\n            // .filter((item) => item.isFile)\n            .filter( filterOnExtension )\n            .map((item) => path.join(pathToDirectory, item.name));\n        msg.payload = filesInDIrectory.length ? filesInDIrectory : []\n        //borrar los archivos que esten vacios aca.\n        //remove....\n            if (!filesInDIrectory.length){\n                \n                    fs.rmdir(pathToDirectory, (err) => {\n                        \n                        \n                    console.log(\"Directory deleted successfully\");\n                    });\n                }\n       \n        node.send( msg )\n    });\n} catch(error) {\n    node.error(error)\n    return\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "fs",
+                "module": "fs"
+            },
+            {
+                "var": "path",
+                "module": "path"
+            }
+        ],
+        "x": 1050,
+        "y": 500,
+        "wires": [
+            [
+                "47f95d1e8f7d63a6"
+            ]
+        ],
+        "info": "Returns an array with the name and location of each file."
+    },
+    {
+        "id": "03a0dc86589565b7",
+        "type": "change",
+        "z": "2e64d4c92af0fc32",
+        "name": "Set Variables",
+        "rules": [
+            {
+                "t": "set",
+                "p": "filesPath",
+                "pt": "flow",
+                "to": "C:\\GRAINVSN\\GVCLOUD\\GVW",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "allowedExtensions",
+                "pt": "flow",
+                "to": "[\".ALM2\",\".TXT\",\".OHM\"]",
+                "tot": "json"
+            },
+            {
+                "t": "set",
+                "p": "deleteFiles",
+                "pt": "msg",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 350,
+        "y": 500,
+        "wires": [
+            [
+                "d239d88c2ad05407"
+            ]
+        ]
+    },
+    {
+        "id": "d239d88c2ad05407",
+        "type": "function",
+        "z": "2e64d4c92af0fc32",
+        "name": "devuelve ruta de los archivos",
+        "func": "var pathToDirectory = flow.get(\"filesPath\")\ntry {\n    fs.readdir(pathToDirectory, { withFileTypes: true }, (error, files) => {\n        if(error){\n           throw error\n        }\n        const directoriesInDIrectory = files\n            .filter((item) => item.isDirectory())\n            .map((item) => path.join(pathToDirectory, item.name) );\n        \n        msg.payload = directoriesInDIrectory.length ? directoriesInDIrectory[0] : null\n        // if (!directoriesInDIrectory.length){\n        //     return\n        // }\n        node.send( msg )\n        \n    });\n} catch(error) {\n    node.error('Ouch! Something went badly wrong processing the folder list', error)\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "fs",
+                "module": "fs"
+            },
+            {
+                "var": "path",
+                "module": "path"
+            }
+        ],
+        "x": 600,
+        "y": 500,
+        "wires": [
+            [
+                "10d74f04a38df887"
+            ]
+        ],
+        "info": "Returns the path of the folder where the files are located."
+    },
+    {
+        "id": "47f95d1e8f7d63a6",
+        "type": "split",
+        "z": "2e64d4c92af0fc32",
+        "name": "enviar_individualmente",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": 1,
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 1340,
+        "y": 500,
+        "wires": [
+            [
+                "dc74d9fb016296f2"
+            ]
+        ],
+        "info": "Returns the paths and names of the files as individual strings."
+    },
+    {
+        "id": "f876dbd1ccf16f39",
+        "type": "debug",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 2550,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "0e3b1dfe6d54b512",
+        "type": "change",
+        "z": "2e64d4c92af0fc32",
+        "name": "Declara fileName",
+        "rules": [
+            {
+                "t": "set",
+                "p": "fileName",
+                "pt": "global",
+                "to": "payload",
+                "tot": "msg"
+            },
+            {
+                "t": "change",
+                "p": "fileName",
+                "pt": "global",
+                "from": "C:\\GRAINVSN\\GVCLOUD\\GVW",
+                "fromt": "str",
+                "to": "",
+                "tot": "str"
+            },
+            {
+                "t": "set",
+                "p": "fileName",
+                "pt": "msg",
+                "to": "fileName",
+                "tot": "global"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1200,
+        "y": 120,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "76227ebcc2656919",
+        "type": "function",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "func": "let historico = {\n    $CodigoVuelta : msg.other.CodigoVuelta,\n    $Proyecto : msg.other.Project,\n    $Fecha : msg.other.FechaHora,\n    $Type : msg.other.Type,\n    $Dato : msg.payload,\n    $Intentos : global.get('attempts')\n}\n\nmsg.payload = historico;\n\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 2140,
+        "y": 360,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "aa0f5fb4de3abd7e",
+        "type": "sqlite",
+        "z": "2e64d4c92af0fc32",
+        "mydb": "38afadbe01b6ed81",
+        "sqlquery": "prepared",
+        "sql": "insert into historicos (CodigoVuelta, Proyecto,  Fecha, Type, Dato, Intentos) VALUES ($CodigoVuelta, $Proyecto, $Fecha, $Type, $Dato, $Intentos);",
+        "name": "",
+        "x": 1830,
+        "y": 580,
+        "wires": [
+            [
+                "62432f06690ad057"
+            ]
+        ]
+    },
+    {
+        "id": "37b5904a424b4721",
+        "type": "function",
+        "z": "2e64d4c92af0fc32",
+        "name": "Initialise historico",
+        "func": "let historico = {\n    $CodigoVuelta : msg.other.CodigoVuelta,\n    $Proyecto : msg.other.Project,\n    $Fecha : msg.other.FechaHora,\n    $Type : msg.other.Type,\n    $Dato : msg.payload,\n    $Intentos : 0\n}\n\nmsg.params = historico;\n\n\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 2310,
+        "y": 500,
+        "wires": [
+            [
+                "f876dbd1ccf16f39"
+            ]
+        ],
+        "info": "'Historico' is used later in the 'SQL control' flow, in the SQLite node.\n\nThe attempts variable changes when the message didn't arrive."
+    },
+    {
+        "id": "fda9d45e9c5c859a",
+        "type": "change",
+        "z": "2e64d4c92af0fc32",
+        "name": " data",
+        "rules": [
+            {
+                "t": "set",
+                "p": "other",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "msg",
+                "dc": true
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "payload.Data",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "attempts",
+                "pt": "global",
+                "to": "1",
+                "tot": "num"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1870,
+        "y": 500,
+        "wires": [
+            [
+                "80bc3cbeae50e5a0"
+            ]
+        ],
+        "info": "All content of Data goes to payload, and the content of payload to 'other'\n\nThis is done because the split node only works with the payload."
+    },
+    {
+        "id": "80bc3cbeae50e5a0",
+        "type": "split",
+        "z": "2e64d4c92af0fc32",
+        "name": "mensajes indv",
+        "splt": "\\n",
+        "spltType": "str",
+        "arraySplt": "1",
+        "arraySpltType": "len",
+        "stream": false,
+        "addname": "",
+        "x": 2060,
+        "y": 500,
+        "wires": [
+            [
+                "37b5904a424b4721"
+            ]
+        ],
+        "info": "The contents of the arrays of data now are individual messages."
+    },
+    {
+        "id": "c32cbe375995c801",
+        "type": "comment",
+        "z": "2e64d4c92af0fc32",
+        "name": "completar",
+        "info": "Falta conectarlo a la base de datos pero eso es lo ultimo.\n\nBorrar archivos que no sirven.\n\nVer como puedo hacer para que cuando se queda sin internet que no se llene lo otro.\n",
+        "x": 2560,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "dc74d9fb016296f2",
+        "type": "function",
+        "z": "2e64d4c92af0fc32",
+        "name": "Read File",
+        "func": "var fileName = msg.payload;\n\nvar canDelete = msg.deleteFiles\n\n\ntry {\n    fs.readFile(fileName, 'utf8' , (err, fileContent) => {\n      if (err) {\n        throw error\n            return\n      }\n      if(fileContent == \"\") {\n          try {\n              if (canDelete){\n               fs.unlinkSync(fileName)\n               //file removed\n              }\n            } catch(err) {\n              node.error('Ouch! Can\\'t remove file', error)\n            }\n          // node.send( msg )\n          return\n      }\n      // Quito las comillas\n      fileContent = fileContent.replace(/['\"]+/g, '');\n      const content = fileContent.split(\",\")\n      var fileExt = fileName.split('.').pop();\n\n        let historico = {\n            $CodigoVuelta : content[0],\n            $Proyecto : content[1],\n            $Fecha : content[2],\n            $Type : fileExt,\n            $Dato : content.slice(3, content.length),\n            $Intentos : 0\n        }\n      msg.params = historico\n      msg.fileName = fileName\n      node.send( msg )\n\n    })\n} catch(error) {\n    node.error('Ouch! Something went badly wrong processing the reading file', error)\n    return\n}",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "fs",
+                "module": "fs"
+            }
+        ],
+        "x": 1600,
+        "y": 500,
+        "wires": [
+            [
+                "aa0f5fb4de3abd7e"
+            ]
+        ],
+        "info": "Returns all data and information obtained from the file."
+    },
+    {
+        "id": "aff40cfd16568e29",
+        "type": "link in",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "links": [
+            "72674acafc5138dc"
+        ],
+        "x": 295,
+        "y": 720,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "744d4769c36c23db",
+        "type": "comment",
+        "z": "2e64d4c92af0fc32",
+        "name": "Falta el envio al servidor atravez de http.",
+        "info": "Falta el envio al servidor atraves de http.",
+        "x": 2650,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "665b16f7408d26dc",
+        "type": "comment",
+        "z": "2e64d4c92af0fc32",
+        "name": "Busca los archivos",
+        "info": "",
+        "x": 720,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "adab7a76973ed908",
+        "type": "comment",
+        "z": "2e64d4c92af0fc32",
+        "name": "Los  declara y los lee",
+        "info": "",
+        "x": 1490,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "8282255d8a7cca0e",
+        "type": "comment",
+        "z": "2e64d4c92af0fc32",
+        "name": "envio al servidor",
+        "info": "",
+        "x": 2340,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "f612393b6f65bdda",
+        "type": "comment",
+        "z": "2e64d4c92af0fc32",
+        "name": "los Formatea para su envio al servidor ",
+        "info": "",
+        "x": 1880,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "bbfb0e456fc08897",
+        "type": "sqlite",
+        "z": "2e64d4c92af0fc32",
+        "mydb": "38afadbe01b6ed81",
+        "sqlquery": "fixed",
+        "sql": "CREATE TABLE IF NOT EXISTS historicos (\n    CodigoVuelta  INT          NOT NULL,\n    Proyecto     VARCHAR (50) NOT NULL,\n    Fecha    VARCHAR (50) DEFAULT NULL,\n    Type    VARCHAR (20) NOT NULL,\n    Dato     INT          NOT NULL,\n    Intentos INT (10) DEFAULT NULL   )   \n                                    \n ",
+        "name": "create",
+        "x": 310,
+        "y": 400,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e558d570890a2568",
+        "type": "inject",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "1",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 120,
+        "y": 400,
+        "wires": [
+            [
+                "bbfb0e456fc08897"
+            ]
+        ]
+    },
+    {
+        "id": "bb8109d07f60cda8",
+        "type": "inject",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 120,
+        "y": 500,
+        "wires": [
+            [
+                "03a0dc86589565b7"
+            ]
+        ]
+    },
+    {
+        "id": "c8f665e1e62d9fbe",
+        "type": "debug",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1170,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "62432f06690ad057",
+        "type": "function",
+        "z": "2e64d4c92af0fc32",
+        "name": "delete file",
+        "func": "var canDelete = msg.deleteFiles\nif (canDelete){\n               fs.unlinkSync(msg.fileName)\n               //file removed\n              }\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [
+            {
+                "var": "fs",
+                "module": "fs"
+            }
+        ],
+        "x": 2090,
+        "y": 620,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "40597b3423fea86b",
+        "type": "comment",
+        "z": "2e64d4c92af0fc32",
+        "name": "T/F borra archivos y carpeta (set varriables)",
+        "info": "si cambiamos la variable de set variables a true comienza a borrar los archivos que pasa a la DB y la carpeta que queda vacia.\nFalse no borra nada.",
+        "x": 420,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "10d74f04a38df887",
+        "type": "switch",
+        "z": "2e64d4c92af0fc32",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "null"
+            },
+            {
+                "t": "nnull"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 790,
+        "y": 500,
+        "wires": [
+            [
+                "7972f6481ed9eadb"
+            ],
+            [
+                "2db1ae55c7f9523e"
+            ]
+        ]
+    },
+    {
+        "id": "7972f6481ed9eadb",
+        "type": "change",
+        "z": "2e64d4c92af0fc32",
+        "name": "Mensaje",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "carpeta vacia",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 960,
+        "y": 420,
+        "wires": [
+            [
+                "c8f665e1e62d9fbe"
+            ]
+        ]
+    }
+]
