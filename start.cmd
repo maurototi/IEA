@@ -1,0 +1,1 @@
+.\bin\node-v16.13.2-win-x64\node-red -u src
