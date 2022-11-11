@@ -66,7 +66,4 @@ Al descargar él .zip nos encontramos con varios archivos que pasamos a detallar
 
 Esto tambien lo dejamos documentado en el código para que sea fácil la lectura cuando estemos codeando.
 
-<p align="center">
-  <img src="C:\GRAINVSN\GVCLOUD\Diagrama_GVCLOUD.jpg" width="350" title="hover text">
-  <img src="C:\GRAINVSN\GVCLOUD\Diagrama_GVCLOUD.jpg" width="350" alt="accessibility text">
-</p>
+![alt text](Diagrama_GVCLOUD.jpg)
